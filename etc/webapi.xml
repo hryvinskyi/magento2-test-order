@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2026. Volodymyr Hryvinskyi. All rights reserved.
+  ~ Author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
+  ~ GitHub: https://github.com/hryvinskyi
+  -->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- Both routes are open to anonymous callers: the authorisation is the end-to-end runner's proof in the
+         X-Test-Order-Proof header, which every request without a valid one is refused for. Both are POST, so that no
+         cache in front of the shop can answer them. -->
+    <route url="/V1/test-orders/recognition" method="POST">
+        <service class="Hryvinskyi\TestOrder\Api\TestOrderRecognitionInterface" method="confirm"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/test-orders/:cartId/abandon" method="POST">
+        <service class="Hryvinskyi\TestOrder\Api\TestOrderAbandonmentInterface" method="abandon"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>

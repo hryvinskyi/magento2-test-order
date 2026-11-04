@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2026. Volodymyr Hryvinskyi. All rights reserved.
+  ~ Author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
+  ~ GitHub: https://github.com/hryvinskyi
+  -->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="hryvinskyi_test_order" resource="default" engine="innodb"
+           comment="Carts the end-to-end runner placed as test orders and the shop recognised">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"
+                comment="Record ID"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" identity="false"
+                comment="Recognised cart"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="true" identity="false"
+                comment="Order placed from the cart, once linked"/>
+        <column xsi:type="datetime" name="recognised_at" nullable="false"
+                comment="Last recognition of the cart, UTC"/>
+        <column xsi:type="smallint" name="abandon_attempts" unsigned="true" nullable="false" identity="false"
+                default="0" comment="Failed attempts of the clean-up job to end the cart's test orders"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="HRYVINSKYI_TEST_ORDER_QUOTE_ID">
+            <column name="quote_id"/>
+        </constraint>
+        <!-- A cart can carry several orders: deleting the linked one must not forget the cart, or its other orders
+             would stop being test orders. -->
+        <constraint xsi:type="foreign" referenceId="HRYVINSKYI_TEST_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="hryvinskyi_test_order" column="order_id"
+                    referenceTable="sales_order" referenceColumn="entity_id" onDelete="SET NULL"/>
+        <index referenceId="HRYVINSKYI_TEST_ORDER_RECOGNISED_AT" indexType="btree">
+            <column name="recognised_at"/>
+        </index>
+    </table>
+    <table name="hryvinskyi_test_order_undo" resource="default" engine="innodb"
+           comment="Test orders whose placement has been taken back, one row per order">
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" identity="false"
+                comment="Undone test order"/>
+        <column xsi:type="datetime" name="undone_at" nullable="false"
+                comment="When the order's undo steps were claimed, UTC"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="order_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="HRYVINSKYI_TEST_ORDER_UNDO_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="hryvinskyi_test_order_undo" column="order_id"
+                    referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+</schema>

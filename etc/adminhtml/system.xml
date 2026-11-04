@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2026. Volodymyr Hryvinskyi. All rights reserved.
+  ~ Author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
+  ~ GitHub: https://github.com/hryvinskyi
+  -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="hryvinskyi" translate="label" sortOrder="300">
+            <label>Hryvinskyi Extensions</label>
+        </tab>
+        <section id="test_order" translate="label" type="text" sortOrder="900" showInDefault="1">
+            <label>Test Orders</label>
+            <tab>hryvinskyi</tab>
+            <resource>Hryvinskyi_TestOrder::config</resource>
+            <group id="cleanup" translate="label comment" type="text" sortOrder="10" showInDefault="1">
+                <label>Clean-up</label>
+                <comment>The end-to-end runner proves its test orders with a secret kept only in app/etc/env.php (test_order/proof_secret); it is never stored in this configuration.</comment>
+                <field id="delete_cancelled" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" canRestore="1">
+                    <label>Delete Cancelled Test Orders</label>
+                    <comment>Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="abandon_after_minutes" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" canRestore="1">
+                    <label>Abandon Test Orders After (Minutes)</label>
+                    <comment>A test order the runner did not end itself is cancelled this many minutes after it was placed.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

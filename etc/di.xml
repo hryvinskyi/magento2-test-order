@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2026. Volodymyr Hryvinskyi. All rights reserved.
+  ~ Author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
+  ~ GitHub: https://github.com/hryvinskyi
+  -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Hryvinskyi\TestOrder\Api\TestOrdersInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrders"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestCartsInterface"
+                type="Hryvinskyi\TestOrder\Model\TestCarts"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestOrderRepositoryInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderRepository"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestCartRecordsInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderRepository"/>
+    <preference for="Hryvinskyi\TestOrder\Api\StaleTestCartsInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderRepository"/>
+    <!-- Two ports of one shared instance: a recognised cart answers yes only because the record writer and whoever
+         asks reach the same memory. -->
+    <preference for="Hryvinskyi\TestOrder\Api\KeptTestOrderAnswersInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderMemo"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestOrderRecordChangesInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderMemo"/>
+    <preference for="Hryvinskyi\TestOrder\Api\Data\TestOrderInterface"
+                type="Hryvinskyi\TestOrder\Model\Data\TestOrder"/>
+    <preference for="Hryvinskyi\TestOrder\Api\ProofVerifierInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderProofVerifier"/>
+    <preference for="Hryvinskyi\TestOrder\Api\SecretProviderInterface"
+                type="Hryvinskyi\TestOrder\Model\DeploymentConfigSecretProvider"/>
+    <!-- No request outside the REST and GraphQL areas carries a proof. -->
+    <preference for="Hryvinskyi\TestOrder\Api\ProofSourceInterface"
+                type="Hryvinskyi\TestOrder\Model\ProofSource\NullProofSource"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestOrderFilterInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderFilter"/>
+    <preference for="Hryvinskyi\TestOrder\Api\Data\EventOrdersInterface"
+                type="Hryvinskyi\TestOrder\Model\Data\EventOrders"/>
+    <preference for="Hryvinskyi\TestOrder\Api\RequestProofInterface"
+                type="Hryvinskyi\TestOrder\Model\RequestProof"/>
+    <preference for="Hryvinskyi\TestOrder\Api\UndoRunnerInterface"
+                type="Hryvinskyi\TestOrder\Model\UndoRunner"/>
+    <preference for="Hryvinskyi\TestOrder\Api\AbandonTestOrderInterface"
+                type="Hryvinskyi\TestOrder\Model\AbandonTestOrder"/>
+    <preference for="Hryvinskyi\TestOrder\Api\OrderDeletionInterface"
+                type="Hryvinskyi\TestOrder\Model\SecureAreaOrderDeletion"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestOrderAbandonmentInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderAbandonment"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestOrderRecognitionInterface"
+                type="Hryvinskyi\TestOrder\Model\TestOrderRecognition"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestCartRecognitionInterface"
+                type="Hryvinskyi\TestOrder\Model\TestCartRecognition"/>
+    <preference for="Hryvinskyi\TestOrder\Api\Data\AbandonResultInterface"
+                type="Hryvinskyi\TestOrder\Model\Data\AbandonResult"/>
+    <preference for="Hryvinskyi\TestOrder\Api\CleanupConfigInterface"
+                type="Hryvinskyi\TestOrder\Model\CleanupConfig"/>
+    <preference for="Hryvinskyi\TestOrder\Api\UndoClaimsInterface"
+                type="Hryvinskyi\TestOrder\Model\UndoClaims"/>
+    <preference for="Hryvinskyi\TestOrder\Api\CartOrdersInterface"
+                type="Hryvinskyi\TestOrder\Model\CartOrders"/>
+    <preference for="Hryvinskyi\TestOrder\Api\LivePaymentsDeclarationInterface"
+                type="Hryvinskyi\TestOrder\Model\DeploymentConfigLivePaymentsDeclaration"/>
+    <preference for="Hryvinskyi\TestOrder\Api\RecognitionGuardInterface"
+                type="Hryvinskyi\TestOrder\Model\RecognitionGuardPool"/>
+
+    <!-- What may veto recognising test orders in a store. A module that knows an integration for which a test order
+         would be unsafe adds its Hryvinskyi\TestOrder\Api\RecognitionGuardInterface here. -->
+    <type name="Hryvinskyi\TestOrder\Model\RecognitionGuardPool">
+        <arguments>
+            <argument name="guards" xsi:type="array"/>
+        </arguments>
+    </type>
+
+    <!-- What placing a test order did in each integration, taken back once when the order is cancelled or
+         abandoned. A module that knows an integration adds its Hryvinskyi\TestOrder\Api\UndoStepInterface here. -->
+    <type name="Hryvinskyi\TestOrder\Model\UndoRunner">
+        <arguments>
+            <argument name="steps" xsi:type="array"/>
+        </arguments>
+    </type>
+
+    <!-- The orders an event is about. Add an item to read an event shape no reader below understands. -->
+    <type name="Hryvinskyi\TestOrder\Plugin\SkipObserverForTestOrders">
+        <arguments>
+            <argument name="readers" xsi:type="array">
+                <item name="order" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\OrderReader</item>
+                <item name="order_ids" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\OrderIdsReader</item>
+                <item name="item" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\OrderItemReader</item>
+                <item name="payment" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\PaymentReader</item>
+                <item name="invoice" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\InvoiceReader</item>
+                <item name="creditmemo" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\CreditmemoReader</item>
+                <item name="shipment" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\ShipmentReader</item>
+                <item name="address" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\OrderAddressReader</item>
+                <item name="address_data_object" xsi:type="object">HryvinskyiTestOrderDataObjectAddressReader</item>
+                <item name="status_history" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\StatusHistoryReader</item>
+                <item name="quote" xsi:type="object">Hryvinskyi\TestOrder\Model\EventReader\QuoteReader</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="HryvinskyiTestOrderDataObjectAddressReader"
+                 type="Hryvinskyi\TestOrder\Model\EventReader\OrderAddressReader">
+        <arguments>
+            <argument name="dataKey" xsi:type="string">data_object</argument>
+        </arguments>
+    </virtualType>
+</config>

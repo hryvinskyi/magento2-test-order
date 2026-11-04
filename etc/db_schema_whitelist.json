@@ -1,0 +1,29 @@
+{
+    "hryvinskyi_test_order": {
+        "column": {
+            "entity_id": true,
+            "quote_id": true,
+            "order_id": true,
+            "recognised_at": true,
+            "abandon_attempts": true
+        },
+        "index": {
+            "HRYVINSKYI_TEST_ORDER_RECOGNISED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "HRYVINSKYI_TEST_ORDER_QUOTE_ID": true,
+            "HRYVINSKYI_TEST_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    },
+    "hryvinskyi_test_order_undo": {
+        "column": {
+            "order_id": true,
+            "undone_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "HRYVINSKYI_TEST_ORDER_UNDO_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    }
+}

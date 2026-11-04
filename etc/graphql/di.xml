@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2026. Volodymyr Hryvinskyi. All rights reserved.
+  ~ Author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
+  ~ GitHub: https://github.com/hryvinskyi
+  -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Hryvinskyi\TestOrder\Api\ProofSourceInterface"
+                type="Hryvinskyi\TestOrder\Model\ProofSource\RequestProofSource"/>
+    <!-- Every REST and GraphQL placement passes here with the real cart id: a proof sent with it is honoured or
+         the placement is refused. It wraps every other plugin on placement, so a refused placement creates no
+         order, and a placement that fails further in can forget the cart it recorded. -->
+    <type name="Magento\Quote\Api\CartManagementInterface">
+        <plugin name="hryvinskyi_test_order_recognise_test_cart"
+                type="Hryvinskyi\TestOrder\Plugin\RecogniseTestCart"
+                sortOrder="-100"/>
+    </type>
+</config>

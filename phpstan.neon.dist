@@ -1,0 +1,12 @@
+parameters:
+    level: 10
+    phpVersion: 80300
+    paths:
+        - .
+    excludePaths:
+        - vendor (?)
+    bootstrapFiles:
+        - ../../../../vendor/autoload.php
+    scanDirectories:
+        - ../../../../generated/code
+        - ../../../../dev/tests/integration/framework
