@@ -19,12 +19,12 @@ namespace Hryvinskyi\TestOrder\Domain;
 enum TestOrderAction: string
 {
     /**
-     * Place an order from a guest cart as a test order; the subject is the cart's masked id.
+     * Place an order from a cart as a test order; the subject is the cart's masked id.
      */
     case Place = 'place';
 
     /**
-     * End the test order placed from a guest cart; the subject is the cart's masked id.
+     * End the test order placed from a cart; the subject is the cart's masked id.
      */
     case Abandon = 'abandon';
 

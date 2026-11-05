@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Δεν αναγνωρίστηκε δοκιμαστική παραγγελία για το καλάθι %1."
-"A test order can only be placed from a guest cart, so the order was not placed.","Μια δοκιμαστική παραγγελία μπορεί να γίνει μόνο από καλάθι επισκέπτη, οπότε η παραγγελία δεν καταχωρίστηκε."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Μια δοκιμαστική παραγγελία μπορεί να γίνει μόνο από καλάθι επισκέπτη ή καλάθι δοκιμαστικού πελάτη, οπότε η παραγγελία δεν καταχωρίστηκε."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Μια δοκιμαστική παραγγελία μπορεί να γίνει μόνο από ανοιχτό καλάθι χωρίς κανονική παραγγελία, οπότε η παραγγελία δεν καταχωρίστηκε."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Η απόδειξη δοκιμαστικής παραγγελίας που στάλθηκε με αυτή την παραγγελία δεν ήταν δυνατό να επαληθευτεί, οπότε η παραγγελία δεν καταχωρίστηκε."
 "The test-order proof sent with this request could not be verified.","Η απόδειξη δοκιμαστικής παραγγελίας που στάλθηκε με αυτό το αίτημα δεν ήταν δυνατό να επαληθευτεί."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Διαγραφή ακυρωμένων δοκιμαστικών παραγγελιών"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Διαγράφει μια δοκιμαστική παραγγελία μόλις ακυρωθεί. Όταν είναι απενεργοποιημένο, οι ακυρωμένες δοκιμαστικές παραγγελίες παραμένουν στον πίνακα παραγγελιών."
 "Abandon Test Orders After (Minutes)","Εγκατάλειψη δοκιμαστικών παραγγελιών μετά από (λεπτά)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Μια δοκιμαστική παραγγελία που ο εκτελεστής δεν ολοκλήρωσε ο ίδιος ακυρώνεται τόσα λεπτά μετά την καταχώρισή της."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Μια δοκιμαστική παραγγελία που ο εκτελεστής δεν ολοκλήρωσε ο ίδιος ολοκληρώνεται τόσα λεπτά μετά την αναγνώριση του καλαθιού της: ακυρώνεται ή, αν έχει πληρωθεί, επιστρέφεται εκτός σύνδεσης."

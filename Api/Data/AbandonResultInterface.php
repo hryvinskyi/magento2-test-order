@@ -29,14 +29,15 @@ interface AbandonResultInterface
     public function getIncrementId(): ?string;
 
     /**
-     * The order's state afterwards: `canceled` once it has been cancelled, its earlier state when it could not be.
+     * The order's state afterwards: `canceled` once it has been cancelled, `closed` once it has been refunded, and its
+     * earlier state when it could be neither. The first two mean the order has ended.
      *
      * @return string
      */
     public function getState(): string;
 
     /**
-     * Whether every order of the cart was deleted after it was cancelled.
+     * Whether every order of the cart was deleted after it was cancelled. A closed order is never deleted.
      *
      * @return bool
      */

@@ -223,13 +223,13 @@ class RestSurfaceTest extends TestCase
      */
     public function testAbandoningWithAProofForTheCart(): void
     {
-        $quoteId = $this->completeTestOrder();
+        $quoteId = $this->closedTestOrder();
         $this->sendProof($this->sign(TestOrderAction::Abandon, self::MASKED_ID));
 
         $answer = $this->abandonment()->abandon(self::MASKED_ID);
 
         self::assertSame(
-            ['increment_id' => 'TESTORDER-' . $quoteId, 'state' => 'complete', 'deleted' => false],
+            ['increment_id' => 'TESTORDER-' . $quoteId, 'state' => 'closed', 'deleted' => false],
             $this->restAnswer($answer, TestOrderAbandonmentInterface::class, 'abandon')
         );
         self::assertSame(['TESTORDER-' . $quoteId], $this->step->undone);
@@ -245,7 +245,7 @@ class RestSurfaceTest extends TestCase
      */
     public function testAbandoningWithoutAProofForTheCartIsRefused(?string $subject, TestOrderAction $action): void
     {
-        $this->completeTestOrder();
+        $this->closedTestOrder();
         $this->sendProof($subject === null ? null : $this->sign($action, $subject));
 
         try {
@@ -283,11 +283,11 @@ class RestSurfaceTest extends TestCase
     }
 
     /**
-     * A guest cart with its masked id, recognised, from which a complete order exists.
+     * A guest cart with its masked id, recognised, from which a closed order exists.
      *
      * @return int Cart (quote) entity id
      */
-    private function completeTestOrder(): int
+    private function closedTestOrder(): int
     {
         $quoteId = CartRows::insertClosedGuestCart(self::MASKED_ID);
         $this->records()->recognise($quoteId);
@@ -296,7 +296,7 @@ class RestSurfaceTest extends TestCase
         self::assertInstanceOf(ResourceConnection::class, $resource);
         $resource->getConnection()->update(
             $resource->getTableName('sales_order'),
-            ['state' => 'complete', 'status' => 'complete'],
+            ['state' => 'closed', 'status' => 'closed'],
             ['entity_id = ?' => $orderId]
         );
 

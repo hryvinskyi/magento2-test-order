@@ -20,9 +20,9 @@ interface StaleTestCartsInterface
      *
      * A cart is named while any order placed from it is not undone. While cancelled orders are still to be deleted, it
      * is also named while any of its orders is cancelled and still exists: the delete failed, or someone else cancelled
-     * the order. An order past cancelling does not count: nothing more can be done for it, and it would hold a place
-     * in the batch for ever. A cart is named only until the clean-up job has failed to end its orders the given number
-     * of times: such a cart is left for a person. Longest-waiting first.
+     * the order. An undone order past cancelling does not count, closed or not: nothing more can be done for it, and
+     * it would hold a place in the batch for ever. A cart is named only until the clean-up job has failed to end its
+     * orders the given number of times: such a cart is left for a person. Longest-waiting first.
      *
      * @param int $minutes How long ago, at least, the cart was last recognised
      * @param int $maxFailedAttempts Failed attempts after which a cart is no longer named

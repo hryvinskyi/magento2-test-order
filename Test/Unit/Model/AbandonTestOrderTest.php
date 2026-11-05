@@ -14,6 +14,7 @@ use Hryvinskyi\TestOrder\Api\CleanupConfigInterface;
 use Hryvinskyi\TestOrder\Api\Data\AbandonResultInterface;
 use Hryvinskyi\TestOrder\Api\Data\AbandonResultInterfaceFactory;
 use Hryvinskyi\TestOrder\Api\OrderDeletionInterface;
+use Hryvinskyi\TestOrder\Api\PaidTestOrderRefundInterface;
 use Hryvinskyi\TestOrder\Api\TestOrderRepositoryInterface;
 use Hryvinskyi\TestOrder\Api\UndoRunnerInterface;
 use Hryvinskyi\TestOrder\Model\AbandonTestOrder;
@@ -30,8 +31,9 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Abandoning a recognised cart ends every order placed from it: each that can be cancelled is cancelled (which undoes
- * it), each that cannot is undone directly, kept and reported for a person, each cancelled one is deleted when deletion
- * is on, and the answer reports an order left open or else the newest — deleted only when all were.
+ * it), each that cannot is refunded and undone directly, each that can be neither is kept and reported for a person,
+ * each cancelled one is deleted when deletion is on, and the answer reports an order left open or else the newest —
+ * deleted only when all were.
  */
 class AbandonTestOrderTest extends TestCase
 {
@@ -57,6 +59,41 @@ class AbandonTestOrderTest extends TestCase
     private array $cancellable = [];
 
     /**
+     * @var list<int> Orders a refund closes
+     */
+    private array $refundable = [];
+
+    /**
+     * @var list<int> Orders refunded that nevertheless stay open
+     */
+    private array $refundedButOpen = [];
+
+    /**
+     * @var list<int> Orders another request closed: the refund answers them closed, this request's copy says otherwise
+     */
+    private array $closedElsewhere = [];
+
+    /**
+     * @var list<int> Orders whose refund throws
+     */
+    private array $failingRefunds = [];
+
+    /**
+     * @var list<int> Orders a refund was asked for, in order
+     */
+    private array $refundsAsked = [];
+
+    /**
+     * @var list<int> Orders a cancellation was asked for, in order
+     */
+    private array $cancellationsAsked = [];
+
+    /**
+     * @var list<string> The reads of an order and the cancellations asked for, in order
+     */
+    private array $orderSteps = [];
+
+    /**
      * @var list<int> Orders whose cancellation throws
      */
     private array $failingCancellations = [];
@@ -75,6 +112,11 @@ class AbandonTestOrderTest extends TestCase
      * @var list<int> Orders undone directly, in order
      */
     private array $undone = [];
+
+    /**
+     * @var list<string> State of the order handed to the undo runner, in order
+     */
+    private array $undoneStates = [];
 
     /**
      * @var list<int> Orders deleted, in order
@@ -296,6 +338,266 @@ class AbandonTestOrderTest extends TestCase
     }
 
     /**
+     * A paid order is past cancelling, so it is refunded and answers closed. A closed order is not deleted while
+     * deletion is on: the setting names cancelled orders, and this one holds an invoice and a credit memo.
+     *
+     * @return void
+     */
+    public function testAnInvoicedOrderIsRefundedAndAnswersClosed(): void
+    {
+        $this->cart([self::ORDER_ID => 'processing'], refundable: [self::ORDER_ID]);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+
+        $result = $this->abandonTestOrder(deletes: true, logger: $logger)->abandon(self::QUOTE_ID);
+
+        self::assertSame([self::ORDER_ID], $this->refundsAsked);
+        self::assertSame([], $this->deleted);
+        self::assertSame('closed', $result->getState());
+        self::assertFalse($result->isDeleted());
+        self::assertSame('1000' . self::ORDER_ID, $result->getIncrementId());
+    }
+
+    /**
+     * A refunded order is undone once, and only after the refund: the runner is handed the order the refund answered.
+     *
+     * @return void
+     */
+    public function testARefundedOrderIsUndoneOnceAfterItClosed(): void
+    {
+        $this->cart([self::ORDER_ID => 'processing'], refundable: [self::ORDER_ID]);
+
+        $this->abandonTestOrder(deletes: false)->abandon(self::QUOTE_ID);
+
+        self::assertSame([self::ORDER_ID], $this->undone);
+        self::assertSame(['closed'], $this->undoneStates);
+    }
+
+    /**
+     * The cancellation comes before any read of the order. The core decides under the order's lock on what the shared
+     * repository holds, so a read here would hand it a copy from before the lock, and two overlapping abandons would
+     * both cancel the order and return its stock twice.
+     *
+     * @dataProvider ordersInAnyState
+     * @param string $state The order's state
+     * @param list<int> $cancellable Orders that can be cancelled
+     * @return void
+     */
+    public function testNothingReadsTheOrderBeforeTheCancellation(string $state, array $cancellable): void
+    {
+        $this->cart([self::ORDER_ID => $state], cancellable: $cancellable);
+
+        $this->abandonTestOrder(deletes: false)->abandon(self::QUOTE_ID);
+
+        self::assertSame('cancel', $this->orderSteps[0] ?? null);
+    }
+
+    /**
+     * An order that can be cancelled, and orders the core declines to.
+     *
+     * @return array<string, array{string, list<int>}>
+     */
+    public static function ordersInAnyState(): array
+    {
+        return [
+            'open' => ['new', [self::ORDER_ID]],
+            'paid' => ['processing', []],
+            'closed' => ['closed', []],
+        ];
+    }
+
+    /**
+     * The order the refund answers is the one that counts. A request that lost a race still remembers the order open,
+     * and the refund's answer says it is closed: nothing is reported, and the answer and the undo see it closed.
+     *
+     * @return void
+     */
+    public function testTheRefundsAnswerOutweighsTheCopyThisRequestHolds(): void
+    {
+        $this->cart([self::ORDER_ID => 'processing']);
+        $this->closedElsewhere = [self::ORDER_ID];
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+
+        $result = $this->abandonTestOrder(deletes: false, logger: $logger)->abandon(self::QUOTE_ID);
+
+        self::assertSame('closed', $result->getState());
+        self::assertSame(['closed'], $this->undoneStates);
+    }
+
+    /**
+     * A refund refused leaves the order in its own state, undone and reported for a person.
+     *
+     * @return void
+     */
+    public function testARefusedRefundIsReportedAndAnswersTheOrdersOwnState(): void
+    {
+        $this->cart([self::ORDER_ID => 'processing']);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('warning')->with(
+            self::logicalAnd(self::stringContains('1000' . self::ORDER_ID), self::stringContains('processing'))
+        );
+
+        $result = $this->abandonTestOrder(deletes: true, logger: $logger)->abandon(self::QUOTE_ID);
+
+        self::assertSame([self::ORDER_ID], $this->refundsAsked);
+        self::assertSame([self::ORDER_ID], $this->undone);
+        self::assertSame(['processing'], $this->undoneStates);
+        self::assertSame('processing', $result->getState());
+        self::assertFalse($result->isDeleted());
+    }
+
+    /**
+     * A refund that leaves the order open has not ended it: only the order's state says so, and a person is told.
+     *
+     * @return void
+     */
+    public function testARefundThatLeavesTheOrderOpenIsReported(): void
+    {
+        $this->cart([self::ORDER_ID => 'processing'], refundable: [self::ORDER_ID]);
+        $this->refundedButOpen = [self::ORDER_ID];
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('warning');
+
+        $result = $this->abandonTestOrder(deletes: false, logger: $logger)->abandon(self::QUOTE_ID);
+
+        self::assertSame('processing', $result->getState());
+    }
+
+    /**
+     * A cart with one cancelled and one closed order has ended, whichever is the newer: the newest answers, and nothing
+     * is reported. The answer is not deleted, as the closed order stays.
+     *
+     * @dataProvider cancelledAndClosedOrders
+     * @param array<int, string> $states State of each order before, oldest first
+     * @param list<int> $cancellable Orders that can still be cancelled
+     * @param list<int> $refundable Orders a refund closes
+     * @param string $answered The state answered
+     * @return void
+     */
+    public function testACartWithACancelledAndAClosedOrderAnswersEnded(
+        array $states,
+        array $cancellable,
+        array $refundable,
+        string $answered
+    ): void {
+        $this->cart($states, cancellable: $cancellable, refundable: $refundable);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+
+        $result = $this->abandonTestOrder(deletes: true, logger: $logger)->abandon(self::QUOTE_ID);
+
+        self::assertSame($answered, $result->getState());
+        self::assertSame('1000' . self::ORDER_ID, $result->getIncrementId());
+        self::assertFalse($result->isDeleted());
+    }
+
+    /**
+     * @return array<string, array{array<int, string>, list<int>, list<int>, string}>
+     */
+    public static function cancelledAndClosedOrders(): array
+    {
+        return [
+            'closed is newer' => [
+                [self::OLDER_ORDER_ID => 'new', self::ORDER_ID => 'processing'],
+                [self::OLDER_ORDER_ID],
+                [self::ORDER_ID],
+                'closed',
+            ],
+            'cancelled is newer' => [
+                [self::OLDER_ORDER_ID => 'processing', self::ORDER_ID => 'new'],
+                [self::ORDER_ID],
+                [self::OLDER_ORDER_ID],
+                'canceled',
+            ],
+        ];
+    }
+
+    /**
+     * An order left open answers for the cart over a newer closed one, as over a newer cancelled one.
+     *
+     * @return void
+     */
+    public function testAnOrderLeftOpenAnswersForTheCartOverANewerClosedOne(): void
+    {
+        $this->cart(
+            [self::OLDER_ORDER_ID => 'holded', self::ORDER_ID => 'processing'],
+            refundable: [self::ORDER_ID]
+        );
+
+        $result = $this->abandonTestOrder(deletes: false)->abandon(self::QUOTE_ID);
+
+        self::assertSame('holded', $result->getState());
+        self::assertSame('1000' . self::OLDER_ORDER_ID, $result->getIncrementId());
+    }
+
+    /**
+     * A refund that throws is passed on after the cart's other orders ended. Its order is not undone: the undo claim is
+     * what takes a cart out of the clean-up job's selection, and this order must be tried again.
+     *
+     * @return void
+     */
+    public function testARefundThatThrowsIsPassedOnAndTheOtherOrderStillEnds(): void
+    {
+        $this->cart(
+            [self::OLDER_ORDER_ID => 'processing', self::ORDER_ID => 'new'],
+            cancellable: [self::ORDER_ID]
+        );
+        $this->failingRefunds = [self::OLDER_ORDER_ID];
+
+        try {
+            $this->abandonTestOrder(deletes: true)->abandon(self::QUOTE_ID);
+            self::fail('A cart whose order could not be refunded was reported as ended.');
+        } catch (LocalizedException $failure) {
+            self::assertSame('Order ' . self::OLDER_ORDER_ID . ' cannot be refunded.', $failure->getMessage());
+        }
+
+        self::assertSame([self::ORDER_ID], $this->cancelled);
+        self::assertSame([self::ORDER_ID], $this->deleted);
+        self::assertSame([self::ORDER_ID], $this->undone);
+    }
+
+    /**
+     * An order already closed has ended, as a repeated abandon finds it. The cancellation is asked for and the core
+     * declines it: no refund, no warning, and it is not deleted. It is still handed to the undo runner, which does
+     * nothing for an order already undone.
+     *
+     * @return void
+     */
+    public function testAnOrderAlreadyClosedAnswersEndedAndIsLeftAlone(): void
+    {
+        $this->cart([self::ORDER_ID => 'closed']);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+
+        $result = $this->abandonTestOrder(deletes: true, logger: $logger)->abandon(self::QUOTE_ID);
+
+        self::assertSame([self::ORDER_ID], $this->cancellationsAsked);
+        self::assertSame([], $this->refundsAsked);
+        self::assertSame([], $this->deleted);
+        self::assertSame([self::ORDER_ID], $this->undone);
+        self::assertSame('closed', $result->getState());
+        self::assertFalse($result->isDeleted());
+    }
+
+    /**
+     * A cancelled order has nothing to refund.
+     *
+     * @dataProvider cancelledOrders
+     * @param string $state State of the order before
+     * @param list<int> $cancellable Orders that can still be cancelled
+     * @return void
+     */
+    public function testACancelledOrderIsNotRefunded(string $state, array $cancellable): void
+    {
+        $this->cart([self::ORDER_ID => $state], cancellable: $cancellable);
+
+        $this->abandonTestOrder(deletes: false)->abandon(self::QUOTE_ID);
+
+        self::assertSame([], $this->refundsAsked);
+    }
+
+    /**
      * A cart that was recognised but from which no order exists cannot be abandoned.
      *
      * @return void
@@ -339,27 +641,31 @@ class AbandonTestOrderTest extends TestCase
      *
      * @param array<int, string> $states State by order id, oldest first
      * @param list<int> $cancellable Orders that can still be cancelled
+     * @param list<int> $refundable Orders a refund closes
      * @return void
      */
-    private function cart(array $states, array $cancellable = []): void
+    private function cart(array $states, array $cancellable = [], array $refundable = []): void
     {
         $this->states = $states;
         $this->cancellable = $cancellable;
+        $this->refundable = $refundable;
     }
 
     /**
-     * An order of the cart, whose state follows {@see self::$states}.
+     * An order of the cart as it is loaded now: its state is the one in {@see self::$states} at this moment, and a
+     * change made afterwards shows only on an order loaded again.
      *
      * @param int $orderId Order entity id
+     * @param string|null $state The state it is read in; the one in {@see self::$states} when null
      * @return OrderInterface
      */
-    private function order(int $orderId): OrderInterface
+    private function order(int $orderId, ?string $state = null): OrderInterface
     {
         $order = $this->createMock(OrderInterface::class);
         $order->method('getEntityId')->willReturn($orderId);
         $order->method('getQuoteId')->willReturn(self::QUOTE_ID);
         $order->method('getIncrementId')->willReturn('1000' . $orderId);
-        $order->method('getState')->willReturnCallback(fn (): string => $this->states[$orderId] ?? '');
+        $order->method('getState')->willReturn($state ?? $this->states[$orderId] ?? '');
 
         return $order;
     }
@@ -386,7 +692,11 @@ class AbandonTestOrderTest extends TestCase
 
         $orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $orderRepository->method('get')->willReturnCallback(
-            fn (int $orderId): OrderInterface => $this->order($orderId)
+            function (int $orderId): OrderInterface {
+                $this->orderSteps[] = 'read';
+
+                return $this->order($orderId);
+            }
         );
 
         $orderDeletion = $this->createMock(OrderDeletionInterface::class);
@@ -396,6 +706,8 @@ class AbandonTestOrderTest extends TestCase
 
         $orderManagement = $this->createMock(OrderManagementInterface::class);
         $orderManagement->method('cancel')->willReturnCallback(function (int $orderId): bool {
+            $this->cancellationsAsked[] = $orderId;
+            $this->orderSteps[] = 'cancel';
             if (in_array($orderId, $this->failingCancellations, true)) {
                 throw $this->cancellationFailure ?? new LocalizedException(__('Order %1 is locked.', $orderId));
             }
@@ -411,8 +723,29 @@ class AbandonTestOrderTest extends TestCase
         $undoRunner = $this->createMock(UndoRunnerInterface::class);
         $undoRunner->method('undo')->willReturnCallback(function (OrderInterface $order): bool {
             $this->undone[] = (int)$order->getEntityId();
+            $this->undoneStates[] = (string)$order->getState();
 
             return true;
+        });
+
+        $paidTestOrderRefund = $this->createMock(PaidTestOrderRefundInterface::class);
+        $paidTestOrderRefund->method('refund')->willReturnCallback(function (OrderInterface $order): OrderInterface {
+            $orderId = (int)$order->getEntityId();
+            $this->refundsAsked[] = $orderId;
+            if (in_array($orderId, $this->failingRefunds, true)) {
+                throw new LocalizedException(__('Order %1 cannot be refunded.', $orderId));
+            }
+            if (in_array($orderId, $this->closedElsewhere, true)) {
+                return $this->order($orderId, 'closed');
+            }
+            if (!in_array($orderId, $this->refundable, true)) {
+                return $order;
+            }
+            if (!in_array($orderId, $this->refundedButOpen, true)) {
+                $this->states[$orderId] = 'closed';
+            }
+
+            return $this->order($orderId);
         });
 
         $config = $this->createMock(CleanupConfigInterface::class);
@@ -437,6 +770,7 @@ class AbandonTestOrderTest extends TestCase
             $orderDeletion,
             $orderManagement,
             $undoRunner,
+            $paidTestOrderRefund,
             $config,
             $resultFactory,
             $logger ?? $this->createStub(LoggerInterface::class)

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Hryvinskyi\TestOrder\Test\Integration\Model;
 
 use Hryvinskyi\TestOrder\Api\AbandonTestOrderInterface;
+use Hryvinskyi\TestOrder\Api\PaidTestOrderRefundInterface;
 use Hryvinskyi\TestOrder\Api\TestCartRecordsInterface;
 use Hryvinskyi\TestOrder\Api\TestOrderRepositoryInterface;
 use Hryvinskyi\TestOrder\Model\AbandonTestOrder;
@@ -27,7 +28,8 @@ use Psr\Log\LoggerInterface;
  *
  * The orders are bare rows that can no longer be cancelled (cancelled already, or complete), so no cancellation
  * runs and no integration listening to it is ever called; the undo runner gets a recording step in place of the
- * real ones.
+ * real ones. A bare row has no payment to refund, so the refund refuses here; a real paid order is ended in
+ * {@see AbandonPaidTestOrderTest}.
  *
  * @magentoDbIsolation enabled
  * @magentoAppIsolation enabled
@@ -147,8 +149,8 @@ class AbandonTestOrderTest extends TestCase
     }
 
     /**
-     * A test order that can no longer be cancelled is undone exactly once however often it is abandoned, keeps its
-     * state, and is never deleted.
+     * A test order that can neither be cancelled nor refunded is undone exactly once however often it is abandoned,
+     * keeps its state, and is never deleted.
      *
      * @magentoConfigFixture default/test_order/cleanup/delete_cancelled 1
      * @return void
@@ -167,7 +169,7 @@ class AbandonTestOrderTest extends TestCase
     }
 
     /**
-     * A test order that can no longer be cancelled is reported for a person, with its number and state.
+     * A test order that can neither be cancelled nor refunded is reported for a person, with its number and state.
      *
      * @magentoConfigFixture default/test_order/cleanup/delete_cancelled 1
      * @return void
@@ -183,7 +185,10 @@ class AbandonTestOrderTest extends TestCase
                 self::stringContains('person')
             )
         );
-        $abandonTestOrder = Bootstrap::getObjectManager()->create(AbandonTestOrder::class, ['logger' => $logger]);
+        $abandonTestOrder = Bootstrap::getObjectManager()->create(AbandonTestOrder::class, [
+            'paidTestOrderRefund' => $this->refusingRefund(),
+            'logger' => $logger,
+        ]);
         self::assertInstanceOf(AbandonTestOrderInterface::class, $abandonTestOrder);
 
         $abandonTestOrder->abandon(self::QUOTE_ID);
@@ -244,7 +249,7 @@ class AbandonTestOrderTest extends TestCase
     }
 
     /**
-     * The use case from the container's wiring, with a runner whose only step records.
+     * The use case from the container's wiring, with a runner whose only step records and a refund that refuses.
      *
      * @return AbandonTestOrderInterface
      */
@@ -252,10 +257,26 @@ class AbandonTestOrderTest extends TestCase
     {
         $objectManager = Bootstrap::getObjectManager();
         $runner = $objectManager->create(UndoRunner::class, ['steps' => ['recording' => $this->step]]);
-        $abandonTestOrder = $objectManager->create(AbandonTestOrder::class, ['undoRunner' => $runner]);
+        $abandonTestOrder = $objectManager->create(AbandonTestOrder::class, [
+            'undoRunner' => $runner,
+            'paidTestOrderRefund' => $this->refusingRefund(),
+        ]);
         self::assertInstanceOf(AbandonTestOrderInterface::class, $abandonTestOrder);
 
         return $abandonTestOrder;
+    }
+
+    /**
+     * A refund that refuses, which answers the order it was given.
+     *
+     * @return PaidTestOrderRefundInterface
+     */
+    private function refusingRefund(): PaidTestOrderRefundInterface
+    {
+        $refund = $this->createStub(PaidTestOrderRefundInterface::class);
+        $refund->method('refund')->willReturnArgument(0);
+
+        return $refund;
     }
 
     /**

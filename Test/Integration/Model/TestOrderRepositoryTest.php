@@ -249,6 +249,33 @@ class TestOrderRepositoryTest extends TestCase
     }
 
     /**
+     * An undone closed order does not count, whether or not cancelled orders are still to be deleted: it is ended, and
+     * nothing would ever take it out of the batch. Closed and never undone, it counts once, as any other order not
+     * undone does: ending it claims the undo and takes it out.
+     *
+     * @return void
+     */
+    public function testAnUndoneClosedOrderDoesNotKeepItsCartNamed(): void
+    {
+        $undone = self::QUOTE_ID;
+        $notUndone = self::QUOTE_ID + 1;
+        $this->repositoryAt('2026-10-02 09:00:00')->recognise($undone);
+        $this->repositoryAt('2026-10-02 09:00:00')->recognise($notUndone);
+        $this->undoClaims()->claim(OrderRows::insert($undone, '', 'closed'));
+        $closedByAPerson = OrderRows::insert($notUndone, '', 'closed');
+
+        $repository = $this->repositoryAt('2026-10-02 10:00:00');
+
+        self::assertNotContains($undone, $repository->getStaleQuoteIds(30, 5, 1000, true));
+        self::assertNotContains($undone, $repository->getStaleQuoteIds(30, 5, 1000, false));
+        self::assertContains($notUndone, $repository->getStaleQuoteIds(30, 5, 1000, false));
+
+        $this->undoClaims()->claim($closedByAPerson);
+
+        self::assertNotContains($notUndone, $repository->getStaleQuoteIds(30, 5, 1000, false));
+    }
+
+    /**
      * A cart given up after too many failed attempts is not named for a cancelled order either.
      *
      * @return void

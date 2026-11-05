@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Er is geen testbestelling herkend voor winkelwagen %1."
-"A test order can only be placed from a guest cart, so the order was not placed.","Een testbestelling kan alleen vanuit een gastwinkelwagen worden geplaatst, dus de bestelling is niet geplaatst."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Een testbestelling kan alleen vanuit een gastwinkelwagen of de winkelwagen van een testklant worden geplaatst, dus de bestelling is niet geplaatst."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Een testbestelling kan alleen vanuit een open winkelwagen zonder gewone bestelling worden geplaatst, dus de bestelling is niet geplaatst."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Het testbestellingsbewijs dat met deze bestelling is meegestuurd, kon niet worden geverifieerd, dus de bestelling is niet geplaatst."
 "The test-order proof sent with this request could not be verified.","Het testbestellingsbewijs dat met dit verzoek is meegestuurd, kon niet worden geverifieerd."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Geannuleerde testbestellingen verwijderen"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Verwijder een testbestelling zodra die is geannuleerd. Indien uit, blijven geannuleerde testbestellingen in het bestellingenoverzicht staan."
 "Abandon Test Orders After (Minutes)","Testbestellingen beëindigen na (minuten)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Een testbestelling die de testrunner niet zelf heeft beëindigd, wordt zoveel minuten na het plaatsen geannuleerd."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Een testbestelling die de testrunner niet zelf heeft beëindigd, wordt zoveel minuten nadat haar winkelwagen is herkend beëindigd: ze wordt geannuleerd of, als ze betaald is, offline terugbetaald."

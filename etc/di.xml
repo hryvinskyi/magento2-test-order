@@ -41,6 +41,8 @@
                 type="Hryvinskyi\TestOrder\Model\UndoRunner"/>
     <preference for="Hryvinskyi\TestOrder\Api\AbandonTestOrderInterface"
                 type="Hryvinskyi\TestOrder\Model\AbandonTestOrder"/>
+    <preference for="Hryvinskyi\TestOrder\Api\PaidTestOrderRefundInterface"
+                type="Hryvinskyi\TestOrder\Model\OfflinePaidTestOrderRefund"/>
     <preference for="Hryvinskyi\TestOrder\Api\OrderDeletionInterface"
                 type="Hryvinskyi\TestOrder\Model\SecureAreaOrderDeletion"/>
     <preference for="Hryvinskyi\TestOrder\Api\TestOrderAbandonmentInterface"
@@ -49,6 +51,8 @@
                 type="Hryvinskyi\TestOrder\Model\TestOrderRecognition"/>
     <preference for="Hryvinskyi\TestOrder\Api\TestCartRecognitionInterface"
                 type="Hryvinskyi\TestOrder\Model\TestCartRecognition"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestCartPlacementInterface"
+                type="Hryvinskyi\TestOrder\Model\TestCartPlacement"/>
     <preference for="Hryvinskyi\TestOrder\Api\Data\AbandonResultInterface"
                 type="Hryvinskyi\TestOrder\Model\Data\AbandonResult"/>
     <preference for="Hryvinskyi\TestOrder\Api\CleanupConfigInterface"
@@ -59,12 +63,24 @@
                 type="Hryvinskyi\TestOrder\Model\CartOrders"/>
     <preference for="Hryvinskyi\TestOrder\Api\LivePaymentsDeclarationInterface"
                 type="Hryvinskyi\TestOrder\Model\DeploymentConfigLivePaymentsDeclaration"/>
+    <preference for="Hryvinskyi\TestOrder\Api\TestCustomersInterface"
+                type="Hryvinskyi\TestOrder\Model\DeploymentConfigTestCustomers"/>
     <preference for="Hryvinskyi\TestOrder\Api\RecognitionGuardInterface"
                 type="Hryvinskyi\TestOrder\Model\RecognitionGuardPool"/>
+    <preference for="Hryvinskyi\TestOrder\Api\CartGuardInterface"
+                type="Hryvinskyi\TestOrder\Model\CartGuardPool"/>
 
     <!-- What may veto recognising test orders in a store. A module that knows an integration for which a test order
          would be unsafe adds its Hryvinskyi\TestOrder\Api\RecognitionGuardInterface here. -->
     <type name="Hryvinskyi\TestOrder\Model\RecognitionGuardPool">
+        <arguments>
+            <argument name="guards" xsi:type="array"/>
+        </arguments>
+    </type>
+
+    <!-- What may veto one cart becoming a test cart. A module that knows what a cart must not pay with adds its
+         Hryvinskyi\TestOrder\Api\CartGuardInterface here. -->
+    <type name="Hryvinskyi\TestOrder\Model\CartGuardPool">
         <arguments>
             <argument name="guards" xsi:type="array"/>
         </arguments>

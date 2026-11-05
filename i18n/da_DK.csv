@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Der blev ikke genkendt nogen testordre for kurv %1."
-"A test order can only be placed from a guest cart, so the order was not placed.","En testordre kan kun afgives fra en gæstekurv, så ordren blev ikke afgivet."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","En testordre kan kun afgives fra en gæstekurv eller en testkundes kurv, så ordren blev ikke afgivet."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","En testordre kan kun afgives fra en åben kurv uden en almindelig ordre, så ordren blev ikke afgivet."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Testordre-beviset, der blev sendt med denne ordre, kunne ikke verificeres, så ordren blev ikke afgivet."
 "The test-order proof sent with this request could not be verified.","Testordre-beviset, der blev sendt med denne forespørgsel, kunne ikke verificeres."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Slet annullerede testordrer"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Slet en testordre, når den er annulleret. Når indstillingen er slået fra, forbliver annullerede testordrer i ordreoversigten."
 "Abandon Test Orders After (Minutes)","Opgiv testordrer efter (minutter)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","En testordre, som testkøreren ikke selv har afsluttet, annulleres så mange minutter efter, at den blev afgivet."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","En testordre, som testkøreren ikke selv har afsluttet, afsluttes så mange minutter efter, at dens kurv blev genkendt: den annulleres, eller refunderes offline, hvis den er betalt."

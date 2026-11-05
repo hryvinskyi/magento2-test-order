@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Für den Warenkorb %1 wurde keine Testbestellung erkannt."
-"A test order can only be placed from a guest cart, so the order was not placed.","Eine Testbestellung kann nur aus einem Gast-Warenkorb aufgegeben werden, daher wurde die Bestellung nicht aufgegeben."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Eine Testbestellung kann nur aus einem Gast-Warenkorb oder dem Warenkorb eines Testkunden aufgegeben werden, daher wurde die Bestellung nicht aufgegeben."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Eine Testbestellung kann nur aus einem offenen Warenkorb ohne reguläre Bestellung aufgegeben werden, daher wurde die Bestellung nicht aufgegeben."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Der mit dieser Bestellung gesendete Testbestellungsnachweis konnte nicht überprüft werden, daher wurde die Bestellung nicht aufgegeben."
 "The test-order proof sent with this request could not be verified.","Der mit dieser Anfrage gesendete Testbestellungsnachweis konnte nicht überprüft werden."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Stornierte Testbestellungen löschen"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Eine Testbestellung löschen, sobald sie storniert wurde. Wenn deaktiviert, bleiben stornierte Testbestellungen in der Bestellübersicht."
 "Abandon Test Orders After (Minutes)","Testbestellungen beenden nach (Minuten)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Eine Testbestellung, die der Testlauf nicht selbst beendet hat, wird so viele Minuten nach ihrer Aufgabe storniert."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Eine Testbestellung, die der Testlauf nicht selbst beendet hat, wird so viele Minuten nach dem Erkennen ihres Warenkorbs beendet: Sie wird storniert oder, wenn sie bezahlt wurde, offline erstattet."

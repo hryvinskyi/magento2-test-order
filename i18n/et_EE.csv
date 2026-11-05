@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Ostukorvi %1 jaoks ei tuvastatud ühtegi testtellimust."
-"A test order can only be placed from a guest cart, so the order was not placed.","Testtellimuse saab esitada ainult külalise ostukorvist, seega tellimust ei esitatud."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Testtellimuse saab esitada ainult külalise ostukorvist või testkliendi ostukorvist, seega tellimust ei esitatud."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Testtellimuse saab esitada ainult avatud ostukorvist, millel pole tavalist tellimust, seega tellimust ei esitatud."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Selle tellimusega saadetud testtellimuse tõendit ei õnnestunud kontrollida, seega tellimust ei esitatud."
 "The test-order proof sent with this request could not be verified.","Selle päringuga saadetud testtellimuse tõendit ei õnnestunud kontrollida."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Kustuta tühistatud testtellimused"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Kustutab testtellimuse pärast selle tühistamist. Kui väljas, jäävad tühistatud testtellimused tellimuste loendisse."
 "Abandon Test Orders After (Minutes)","Loobu testtellimustest pärast (minutit)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Testtellimus, mida käivitaja ise ei lõpetanud, tühistatakse nii mitu minutit pärast selle esitamist."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Testtellimus, mida käivitaja ise ei lõpetanud, lõpetatakse nii mitu minutit pärast selle ostukorvi äratundmist: see tühistatakse või, kui see on makstud, tagastatakse võrguühenduseta."

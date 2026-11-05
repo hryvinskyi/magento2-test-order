@@ -21,18 +21,26 @@ use Magento\TestFramework\Helper\Bootstrap;
  * skips test orders — without running the observer.
  *
  * The plugin is expected under the name every opting-out module gives it, `skip_test_orders`, as an `around` plugin
- * on `execute`.
+ * on `execute`. The plugin list keeps an entry for a class that no longer exists, so a class is checked first: a
+ * vendor's rename would otherwise leave the assertion green and the new class not opted out.
  */
 trait AssertsObserverSkipsTestOrders
 {
     /**
      * Assert the observer's `execute` passes through the plugin that skips test orders in the current area.
      *
-     * @param class-string $observerClass Observer the module declares in its events configuration
+     * @param string $observerClass Observer the module declares in its events configuration
      * @return void
      */
     private static function assertObserverSkipsTestOrders(string $observerClass): void
     {
+        if (!class_exists($observerClass)) {
+            self::fail(sprintf(
+                '%s does not exist, so nothing is opted out. Opt out the class that replaced it.',
+                $observerClass
+            ));
+        }
+
         $pluginList = Bootstrap::getObjectManager()->get(PluginListInterface::class);
         self::assertInstanceOf(PluginList::class, $pluginList);
 

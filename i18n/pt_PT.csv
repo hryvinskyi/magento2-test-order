@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Não foi reconhecida nenhuma encomenda de teste para o carrinho %1."
-"A test order can only be placed from a guest cart, so the order was not placed.","Uma encomenda de teste só pode ser feita a partir de um carrinho de convidado, pelo que a encomenda não foi feita."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Uma encomenda de teste só pode ser feita a partir de um carrinho de convidado ou do carrinho de um cliente de teste, pelo que a encomenda não foi feita."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Uma encomenda de teste só pode ser feita a partir de um carrinho aberto sem encomenda normal, pelo que a encomenda não foi feita."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Não foi possível verificar o comprovativo de encomenda de teste enviado com esta encomenda, pelo que a encomenda não foi feita."
 "The test-order proof sent with this request could not be verified.","Não foi possível verificar o comprovativo de encomenda de teste enviado com este pedido."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Eliminar encomendas de teste canceladas"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Elimina uma encomenda de teste depois de cancelada. Quando desativado, as encomendas de teste canceladas permanecem na grelha de encomendas."
 "Abandon Test Orders After (Minutes)","Abandonar encomendas de teste após (minutos)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Uma encomenda de teste que o executor não terminou por si é cancelada este número de minutos depois de ter sido feita."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Uma encomenda de teste que o executor não terminou por si é terminada este número de minutos depois de o seu carrinho ser reconhecido: é cancelada ou, se foi paga, reembolsada offline."

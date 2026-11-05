@@ -12,12 +12,16 @@ namespace Hryvinskyi\TestOrder\Test\Integration\Plugin;
 use Laminas\Http\Header\HeaderInterface;
 use Laminas\Http\Headers;
 use Laminas\Stdlib\Parameters;
+use Hryvinskyi\TestOrder\Api\CartGuardInterface;
+use Hryvinskyi\TestOrder\Api\CartOrdersInterface;
 use Hryvinskyi\TestOrder\Api\Data\TestOrderInterface;
 use Hryvinskyi\TestOrder\Api\RecognitionGuardInterface;
 use Hryvinskyi\TestOrder\Api\TestCartRecordsInterface;
+use Hryvinskyi\TestOrder\Api\TestOrderAbandonmentInterface;
 use Hryvinskyi\TestOrder\Api\TestOrderRepositoryInterface;
 use Hryvinskyi\TestOrder\Api\TestOrdersInterface;
 use Hryvinskyi\TestOrder\Domain\TestOrderAction;
+use Hryvinskyi\TestOrder\Model\CartGuardPool;
 use Hryvinskyi\TestOrder\Model\ProofSource\RequestProofSource;
 use Hryvinskyi\TestOrder\Model\RecognitionGuardPool;
 use Hryvinskyi\TestOrder\Model\TestCartRecognition;
@@ -30,12 +34,16 @@ use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Quote\Model\CartLockedException;
 use Magento\Quote\Model\CartMutexInterface;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
+use Magento\Sales\Model\Order;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -65,16 +73,29 @@ class RecogniseTestCartTest extends TestCase
 
     private const string LONG_AGO = '2026-01-01 00:00:00';
 
+    private const string FIXTURE_CUSTOMER = 'customer@example.com';
+
+    private const string FIXTURE_CUSTOMER_ORDER = '55555555';
+
     private const string THE_CORE_STOPPED
         = 'A server error stopped your order from being placed. Please try to place your order again.';
 
-    private const string GUEST_ONLY = 'A test order can only be placed from a guest cart, so the order was not placed.';
+    private const string WRONG_OWNER
+        = "A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.";
 
     private const string NOT_VERIFIED
         = 'The test-order proof sent with this order could not be verified, so the order was not placed.';
 
     private const string NOT_OPEN
         = 'A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.';
+
+    private const string OTHER_MASKED_ID = 'TestOrderRecognition0000000000bb';
+
+    private const int NO_SUCH_CART = 987654321;
+
+    private const string METHOD_SAVED_ON_THE_FIXTURE_CART = 'checkmo';
+
+    private const string METHOD_ONLY_THE_CALL_NAMES = 'banktransfer';
 
     /**
      * @var string|false The override variable as it was before the test
@@ -173,6 +194,114 @@ class RecogniseTestCartTest extends TestCase
         } finally {
             $this->objectManager()->removeSharedInstance(RecognitionGuardPool::class);
             $this->objectManager()->removeSharedInstance(TestCartRecognition::class);
+        }
+    }
+
+    /**
+     * A cart guard in the container's own pool refuses a real cart that could be placed: the reason is the guard's, about
+     * that very cart, nothing is recorded, and the placement never ran, so no order exists.
+     *
+     * @magentoDataFixture Magento/Sales/_files/guest_quote_with_addresses.php
+     * @magentoAppArea webapi_rest
+     * @return void
+     */
+    public function testACartGuardInTheRealPoolRefusesARealCart(): void
+    {
+        self::assertInstanceOf(CartGuardPool::class, $this->objectManager()->get(CartGuardInterface::class));
+        $this->configureSecret(self::SECRET);
+        [$quoteId, $maskedId] = $this->fixtureCart();
+        $this->sendProof($this->sign(self::SECRET, $maskedId));
+        $this->cartGuardRefusing($quoteId, 'This cart pays on live keys.');
+
+        try {
+            $this->assertRefused('This cart pays on live keys.', $this->place($quoteId));
+            $this->assertNotRecorded($quoteId);
+            self::assertSame([], $this->cartOrders()->ofCart($quoteId));
+        } finally {
+            $this->objectManager()->removeSharedInstance(CartGuardPool::class);
+            $this->objectManager()->removeSharedInstance(TestCartRecognition::class);
+        }
+    }
+
+    /**
+     * A method named only in the placement call is what a guard judges: the cart still holds another one, and the core
+     * would place the order on the method the call names. The refusal comes first, nothing is recorded and no order
+     * exists.
+     *
+     * @magentoDataFixture Magento/Sales/_files/guest_quote_with_addresses.php
+     * @magentoConfigFixture default_store payment/banktransfer/active 1
+     * @magentoAppArea webapi_rest
+     * @return void
+     */
+    public function testACartGuardRefusesAMethodNamedOnlyInTheCall(): void
+    {
+        $this->configureSecret(self::SECRET);
+        [$quoteId, $maskedId] = $this->fixtureCart();
+        $this->sendProof($this->sign(self::SECRET, $maskedId));
+        $this->cartGuardRefusingMethod(self::METHOD_ONLY_THE_CALL_NAMES, 'This method takes real money.');
+        $payment = $this->objectManager()->create(PaymentInterface::class);
+        self::assertInstanceOf(PaymentInterface::class, $payment);
+        $payment->setMethod(self::METHOD_ONLY_THE_CALL_NAMES);
+
+        try {
+            $stopped = null;
+            try {
+                $this->cartManagement()->placeOrder($quoteId, $payment);
+            } catch (\Throwable $refusal) {
+                $stopped = $refusal;
+            }
+            self::assertInstanceOf(LocalizedException::class, $stopped, 'The order was placed.');
+            $this->assertRefused('This method takes real money.', $stopped);
+            $this->assertNotRecorded($quoteId);
+            self::assertSame([], $this->cartOrders()->ofCart($quoteId));
+        } finally {
+            $this->objectManager()->removeSharedInstance(CartGuardPool::class);
+            $this->objectManager()->removeSharedInstance(TestCartRecognition::class);
+        }
+    }
+
+    /**
+     * A placement that names no method is paid with the one saved on the cart, and the real payment contract tells a
+     * guard which that is.
+     *
+     * @magentoDataFixture Magento/Sales/_files/guest_quote_with_addresses.php
+     * @magentoAppArea webapi_rest
+     * @return void
+     */
+    public function testACartGuardSeesTheMethodSavedOnTheCart(): void
+    {
+        $this->configureSecret(self::SECRET);
+        [$quoteId, $maskedId] = $this->fixtureCart();
+        $this->sendProof($this->sign(self::SECRET, $maskedId));
+        $this->cartGuardRefusingMethod(self::METHOD_SAVED_ON_THE_FIXTURE_CART, 'This method takes real money.');
+
+        try {
+            $this->assertRefused('This method takes real money.', $this->place($quoteId));
+            $this->assertNotRecorded($quoteId);
+        } finally {
+            $this->objectManager()->removeSharedInstance(CartGuardPool::class);
+            $this->objectManager()->removeSharedInstance(TestCartRecognition::class);
+        }
+    }
+
+    /**
+     * A junk proof is answered alike for a cart that does not exist, a guest's cart and an unnamed customer's cart, and
+     * nothing is recorded, so the refusal tells a visitor nothing about any of them.
+     *
+     * @magentoDataFixture Magento/Checkout/_files/customer_quote_ready_for_order.php
+     * @magentoAppArea webapi_rest
+     * @return void
+     */
+    public function testAJunkProofIsAnsweredAlikeWhateverTheCart(): void
+    {
+        $this->configureSecret(self::SECRET, ['buyer@example.test']);
+        $customersCart = $this->customerCart();
+        $guestsCart = CartRows::insertOpenGuestCart(self::OTHER_MASKED_ID);
+        $this->sendProof('not-a-proof');
+
+        foreach ([self::NO_SUCH_CART, $guestsCart, $customersCart] as $quoteId) {
+            $this->assertRefused(self::NOT_VERIFIED, $this->place($quoteId));
+            $this->assertNotRecorded($quoteId);
         }
     }
 
@@ -279,7 +408,7 @@ class RecogniseTestCartTest extends TestCase
     }
 
     /**
-     * A proof on a cart guests do not know by a masked id refuses the placement.
+     * A proof on a cart with no masked id refuses the placement.
      *
      * @magentoAppArea webapi_rest
      * @return void
@@ -290,7 +419,7 @@ class RecogniseTestCartTest extends TestCase
         $quoteId = CartRows::insertOpenGuestCart(null);
         $this->sendProof($this->sign(self::SECRET, (string)$quoteId));
 
-        $this->assertRefused(self::GUEST_ONLY, $this->place($quoteId));
+        $this->assertRefused(self::NOT_VERIFIED, $this->place($quoteId));
         $this->assertNotRecorded($quoteId);
     }
 
@@ -508,6 +637,99 @@ class RecogniseTestCartTest extends TestCase
     }
 
     /**
+     * A customer the deployment names places a real order through the core with a proof: it is a linked test order, and
+     * the runner's route ends it by the cart's masked id, as it ends a guest's.
+     *
+     * Runs in the GraphQL area because REST also refuses to save a customer's cart for a caller who is not that customer,
+     * and this test signs nobody in.
+     *
+     * @magentoDataFixture Magento/Checkout/_files/customer_quote_ready_for_order.php
+     * @magentoAppArea graphql
+     * @return void
+     */
+    public function testANamedCustomersPlacementIsATestOrderTheRunnerCanEnd(): void
+    {
+        $this->configureSecret(self::SECRET, ['  ' . strtoupper(self::FIXTURE_CUSTOMER) . ' ']);
+        $quoteId = $this->customerCart(Area::AREA_GRAPHQL);
+        $this->sendProof($this->sign(self::SECRET, self::MASKED_ID));
+
+        $orderId = (int)$this->cartManagement()->placeOrder($quoteId);
+
+        self::assertGreaterThan(0, $orderId);
+        self::assertSame($orderId, $this->repository()->getByQuoteId($quoteId)->getOrderId());
+        self::assertTrue($this->testOrders()->isTestOrderId($orderId));
+
+        $this->sendProof($this->sign(self::SECRET, self::MASKED_ID, TestOrderAction::Abandon));
+        $abandonment = Bootstrap::getObjectManager()->get(TestOrderAbandonmentInterface::class);
+        self::assertInstanceOf(TestOrderAbandonmentInterface::class, $abandonment);
+
+        self::assertSame(Order::STATE_CANCELED, $abandonment->abandon(self::MASKED_ID)->getState());
+    }
+
+    /**
+     * A customer the deployment does not name is refused with a valid proof: nothing is recorded and no order exists.
+     *
+     * @magentoDataFixture Magento/Checkout/_files/customer_quote_ready_for_order.php
+     * @magentoAppArea webapi_rest
+     * @return void
+     */
+    public function testAnUnnamedCustomersPlacementIsRefused(): void
+    {
+        $this->configureSecret(self::SECRET, ['buyer@example.test']);
+        $quoteId = $this->customerCart();
+        $this->sendProof($this->sign(self::SECRET, self::MASKED_ID));
+
+        $stopped = $this->place($quoteId);
+
+        self::assertInstanceOf(LocalizedException::class, $stopped);
+        $this->assertRefused(self::WRONG_OWNER, $stopped);
+        $this->assertNotRecorded($quoteId);
+        self::assertSame([], $this->cartOrders()->ofCart($quoteId));
+    }
+
+    /**
+     * With no list in the deployment configuration a customer's cart is refused as any unnamed customer's.
+     *
+     * @magentoDataFixture Magento/Checkout/_files/customer_quote_ready_for_order.php
+     * @magentoAppArea webapi_rest
+     * @return void
+     */
+    public function testACustomersPlacementIsRefusedWhileTheDeploymentNamesNobody(): void
+    {
+        $this->configureSecret(self::SECRET);
+        $quoteId = $this->customerCart();
+        $this->sendProof($this->sign(self::SECRET, self::MASKED_ID));
+
+        $this->assertRefused(self::WRONG_OWNER, $this->place($quoteId));
+        $this->assertNotRecorded($quoteId);
+        self::assertSame([], $this->cartOrders()->ofCart($quoteId));
+    }
+
+    /**
+     * The address a checkout wrote on the cart does not name the account behind it, even when it is a named address.
+     *
+     * @magentoDataFixture Magento/Checkout/_files/customer_quote_ready_for_order.php
+     * @magentoAppArea webapi_rest
+     * @return void
+     */
+    public function testTheCartsOwnEmailDoesNotMakeACustomerATestCustomer(): void
+    {
+        $this->configureSecret(self::SECRET, ['buyer@example.test']);
+        $quoteId = $this->customerCart();
+        $resource = Bootstrap::getObjectManager()->get(ResourceConnection::class);
+        self::assertInstanceOf(ResourceConnection::class, $resource);
+        $resource->getConnection()->update(
+            $resource->getTableName('quote'),
+            ['customer_email' => 'buyer@example.test'],
+            ['entity_id = ?' => $quoteId]
+        );
+        $this->sendProof($this->sign(self::SECRET, self::MASKED_ID));
+
+        $this->assertRefused(self::WRONG_OWNER, $this->place($quoteId));
+        $this->assertNotRecorded($quoteId);
+    }
+
+    /**
      * Place the cart's order through the container's service, and hand back what stopped it.
      *
      * @param int $quoteId Cart (quote) entity id
@@ -547,7 +769,7 @@ class RecogniseTestCartTest extends TestCase
     {
         self::assertNotContains(
             $stopped->getMessage(),
-            [self::GUEST_ONLY, self::NOT_VERIFIED, self::NOT_OPEN],
+            [self::WRONG_OWNER, self::NOT_VERIFIED, self::NOT_OPEN],
             'The placement was refused.'
         );
         self::assertSame(self::THE_CORE_STOPPED, $stopped->getMessage());
@@ -578,27 +800,57 @@ class RecogniseTestCartTest extends TestCase
     /**
      * The guest cart of the data fixture, ready to be placed in the area under test.
      *
-     * The fixture loads the storefront area, so the area of the test is loaded again.
-     *
      * @return array{int, string} The cart's entity id and its masked id
      */
     private function fixtureCart(): array
     {
-        Bootstrap::getInstance()->getBootstrap()->getApplication()->loadArea(Area::AREA_WEBAPI_REST);
+        $quoteId = $this->fixtureCartId('guest_quote');
+        $maskedIds = Bootstrap::getObjectManager()->get(QuoteIdToMaskedQuoteIdInterface::class);
+        self::assertInstanceOf(QuoteIdToMaskedQuoteIdInterface::class, $maskedIds);
+
+        return [$quoteId, $maskedIds->execute($quoteId)];
+    }
+
+    /**
+     * The customer's cart of the data fixture, given a masked id, ready to be placed in the area under test.
+     *
+     * @param string $area The area under test
+     * @return int Cart (quote) entity id
+     */
+    private function customerCart(string $area = Area::AREA_WEBAPI_REST): int
+    {
+        $quoteId = $this->fixtureCartId(self::FIXTURE_CUSTOMER_ORDER, $area);
+        $resource = Bootstrap::getObjectManager()->get(ResourceConnection::class);
+        self::assertInstanceOf(ResourceConnection::class, $resource);
+        $resource->getConnection()->insert(
+            $resource->getTableName('quote_id_mask'),
+            ['quote_id' => $quoteId, 'masked_id' => self::MASKED_ID]
+        );
+
+        return $quoteId;
+    }
+
+    /**
+     * The id of a data fixture's cart, with the area under test loaded again: a fixture may load another.
+     *
+     * @param string $reservedOrderId The order number the fixture reserved for the cart
+     * @param string $area The area under test
+     * @return int Cart (quote) entity id
+     */
+    private function fixtureCartId(string $reservedOrderId, string $area = Area::AREA_WEBAPI_REST): int
+    {
+        Bootstrap::getInstance()->getBootstrap()->getApplication()->loadArea($area);
         $resource = Bootstrap::getObjectManager()->get(ResourceConnection::class);
         self::assertInstanceOf(ResourceConnection::class, $resource);
         $connection = $resource->getConnection();
         $quoteId = $connection->fetchOne(
             $connection->select()
                 ->from($resource->getTableName('quote'), ['entity_id'])
-                ->where('reserved_order_id = ?', 'guest_quote')
+                ->where('reserved_order_id = ?', $reservedOrderId)
         );
         self::assertIsNumeric($quoteId);
-        $quoteId = (int)$quoteId;
-        $maskedIds = Bootstrap::getObjectManager()->get(QuoteIdToMaskedQuoteIdInterface::class);
-        self::assertInstanceOf(QuoteIdToMaskedQuoteIdInterface::class, $maskedIds);
 
-        return [$quoteId, $maskedIds->execute($quoteId)];
+        return (int)$quoteId;
     }
 
     /**
@@ -619,17 +871,19 @@ class RecogniseTestCartTest extends TestCase
     }
 
     /**
-     * Configure the shop's secret in the deployment configuration, or remove it.
+     * Configure the shop's secret and test customers in the deployment configuration, or remove them.
      *
-     * @param string|null $secret Secret; null for none
+     * @param string|null $secret Secret; null for none, and no test customers either
+     * @param list<string> $customers The test customers' addresses
      * @return void
      */
-    private function configureSecret(?string $secret): void
+    private function configureSecret(?string $secret, array $customers = []): void
     {
+        $configuration = ['proof_secret' => $secret, 'customers' => $customers];
         putenv(
             $secret === null
                 ? self::OVERRIDE_VARIABLE
-                : self::OVERRIDE_VARIABLE . '=' . json_encode(['test_order' => ['proof_secret' => $secret]])
+                : self::OVERRIDE_VARIABLE . '=' . json_encode(['test_order' => $configuration])
         );
         $this->deploymentConfig()->resetData();
     }
@@ -685,6 +939,68 @@ class RecogniseTestCartTest extends TestCase
             new RecognitionGuardPool(['refusing' => $guard]),
             RecognitionGuardPool::class
         );
+        $objectManager->removeSharedInstance(TestCartRecognition::class);
+    }
+
+    /**
+     * Let the container's cart guard pool hold one guard that refuses one cart, and rebuild recognition around it.
+     *
+     * @param int $quoteId Cart (quote) entity id it refuses; it has no objection to any other
+     * @param string $reason The guard's reason
+     * @return void
+     */
+    private function cartGuardRefusing(int $quoteId, string $reason): void
+    {
+        $guard = new class ($quoteId, $reason) implements CartGuardInterface {
+            /**
+             * @param int $quoteId The cart it refuses
+             * @param string $reason The reason given for it
+             */
+            public function __construct(private readonly int $quoteId, private readonly string $reason)
+            {
+            }
+
+            /**
+             * @inheritDoc
+             */
+            public function refusalForCart(CartInterface $cart, ?string $paymentMethod): ?Phrase
+            {
+                return (int)$cart->getId() === $this->quoteId ? new Phrase($this->reason) : null;
+            }
+        };
+        $objectManager = $this->objectManager();
+        $objectManager->addSharedInstance(new CartGuardPool(['refusing' => $guard]), CartGuardPool::class);
+        $objectManager->removeSharedInstance(TestCartRecognition::class);
+    }
+
+    /**
+     * Let the container's cart guard pool hold one guard that refuses one payment method, and rebuild recognition.
+     *
+     * @param string $method The method it refuses; it has no objection to any other
+     * @param string $reason The guard's reason
+     * @return void
+     */
+    private function cartGuardRefusingMethod(string $method, string $reason): void
+    {
+        $guard = new class ($method, $reason) implements CartGuardInterface {
+            /**
+             * @param string $method The method it refuses
+             * @param string $reason The reason given for it
+             */
+            public function __construct(private readonly string $method, private readonly string $reason)
+            {
+            }
+
+            /**
+             * @inheritDoc
+             */
+            public function refusalForCart(CartInterface $cart, ?string $paymentMethod): ?Phrase
+            {
+                return $paymentMethod === $this->method ? new Phrase($this->reason) : null;
+            }
+        };
+        $objectManager = $this->objectManager();
+        $objectManager->addSharedInstance(new CartGuardPool(['refusing' => $guard]), CartGuardPool::class);
         $objectManager->removeSharedInstance(TestCartRecognition::class);
     }
 
@@ -746,6 +1062,19 @@ class RecogniseTestCartTest extends TestCase
         self::assertInstanceOf(TestOrdersInterface::class, $testOrders);
 
         return $testOrders;
+    }
+
+    /**
+     * The orders placed from a cart.
+     *
+     * @return CartOrdersInterface
+     */
+    private function cartOrders(): CartOrdersInterface
+    {
+        $cartOrders = Bootstrap::getObjectManager()->get(CartOrdersInterface::class);
+        self::assertInstanceOf(CartOrdersInterface::class, $cartOrders);
+
+        return $cartOrders;
     }
 
     /**

@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Za košarico %1 ni bilo prepoznano nobeno testno naročilo."
-"A test order can only be placed from a guest cart, so the order was not placed.","Testno naročilo je mogoče oddati samo iz košarice gosta, zato naročilo ni bilo oddano."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Testno naročilo je mogoče oddati samo iz košarice gosta ali košarice testne stranke, zato naročilo ni bilo oddano."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Testno naročilo je mogoče oddati samo iz odprte košarice brez običajnega naročila, zato naročilo ni bilo oddano."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Dokazila testnega naročila, poslanega s tem naročilom, ni bilo mogoče preveriti, zato naročilo ni bilo oddano."
 "The test-order proof sent with this request could not be verified.","Dokazila testnega naročila, poslanega s to zahtevo, ni bilo mogoče preveriti."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Izbriši preklicana testna naročila"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Izbriše testno naročilo, ko je preklicano. Ko je izklopljeno, preklicana testna naročila ostanejo v seznamu naročil."
 "Abandon Test Orders After (Minutes)","Opusti testna naročila po (minutah)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Testno naročilo, ki ga izvajalnik ni sam končal, se prekliče toliko minut po oddaji."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Testno naročilo, ki ga izvajalnik ni sam končal, se konča toliko minut po prepoznavi njegove košarice: prekliče se ali, če je bilo plačano, povrne brez povezave."

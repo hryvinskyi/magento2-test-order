@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Ingen testorder kändes igen för varukorg %1."
-"A test order can only be placed from a guest cart, so the order was not placed.","En testorder kan bara läggas från en gästvarukorg, så ordern lades inte."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","En testorder kan bara läggas från en gästvarukorg eller en testkunds varukorg, så ordern lades inte."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","En testorder kan bara läggas från en öppen varukorg utan en vanlig order, så ordern lades inte."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Testorderbeviset som skickades med den här ordern kunde inte verifieras, så ordern lades inte."
 "The test-order proof sent with this request could not be verified.","Testorderbeviset som skickades med den här begäran kunde inte verifieras."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Radera annullerade testordrar"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Radera en testorder när den har annullerats. När avstängt ligger annullerade testordrar kvar i orderlistan."
 "Abandon Test Orders After (Minutes)","Överge testordrar efter (minuter)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","En testorder som testköraren inte själv avslutade annulleras så många minuter efter att den lades."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","En testorder som testköraren inte själv avslutade avslutas så många minuter efter att dess kundvagn kändes igen: den annulleras eller, om den är betald, återbetalas offline."

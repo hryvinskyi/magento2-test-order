@@ -131,7 +131,7 @@ class AbandonStaleTestOrders
         $this->logger->critical(
             sprintf(
                 'The test orders of cart %d (orders %s) could not be abandoned after %d attempts and are no longer '
-                . 'tried; they stay test orders and must be cancelled by a person: %s',
+                . 'tried; they stay test orders and a person must end them: %s',
                 $quoteId,
                 $this->orderNumbersOf($quoteId),
                 $attempts,

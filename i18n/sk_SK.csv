@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Pre košík %1 nebola rozpoznaná žiadna testovacia objednávka."
-"A test order can only be placed from a guest cart, so the order was not placed.","Testovaciu objednávku možno odoslať iba z košíka hosťa, preto objednávka nebola odoslaná."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Testovaciu objednávku možno odoslať iba z košíka hosťa alebo košíka testovacieho zákazníka, preto objednávka nebola odoslaná."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Testovaciu objednávku možno odoslať iba z otvoreného košíka bez bežnej objednávky, preto objednávka nebola odoslaná."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Doklad testovacej objednávky odoslaný s touto objednávkou sa nepodarilo overiť, preto objednávka nebola odoslaná."
 "The test-order proof sent with this request could not be verified.","Doklad testovacej objednávky odoslaný s touto požiadavkou sa nepodarilo overiť."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Mazať zrušené testovacie objednávky"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Zmaže testovaciu objednávku, keď bola zrušená. Ak je vypnuté, zrušené testovacie objednávky zostanú v prehľade objednávok."
 "Abandon Test Orders After (Minutes)","Opustiť testovacie objednávky po (minútach)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Testovacia objednávka, ktorú spúšťač sám neukončil, sa zruší toľko minút po jej odoslaní."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Testovacia objednávka, ktorú spúšťač sám neukončil, sa ukončí toľko minút po rozpoznaní jej košíka: zruší sa, alebo sa offline refunduje, ak bola zaplatená."

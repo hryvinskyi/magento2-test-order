@@ -27,7 +27,7 @@ class TestOrderAbandonment implements TestOrderAbandonmentInterface
 {
     /**
      * @param RequestProofInterface $requestProof The proof sent with the request
-     * @param MaskedQuoteIdToQuoteIdInterface $quoteIds Resolves the guest cart's masked id
+     * @param MaskedQuoteIdToQuoteIdInterface $quoteIds Resolves the cart's masked id
      * @param AbandonTestOrderInterface $abandonTestOrder Ends the cart's test order
      */
     public function __construct(

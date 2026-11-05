@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Grozam %1 netika atpazīts neviens testa pasūtījums."
-"A test order can only be placed from a guest cart, so the order was not placed.","Testa pasūtījumu var veikt tikai no viesa groza, tāpēc pasūtījums netika veikts."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Testa pasūtījumu var veikt tikai no viesa groza vai testa klienta groza, tāpēc pasūtījums netika veikts."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Testa pasūtījumu var veikt tikai no atvērta groza bez parasta pasūtījuma, tāpēc pasūtījums netika veikts."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Ar šo pasūtījumu nosūtīto testa pasūtījuma apliecinājumu neizdevās pārbaudīt, tāpēc pasūtījums netika veikts."
 "The test-order proof sent with this request could not be verified.","Ar šo pieprasījumu nosūtīto testa pasūtījuma apliecinājumu neizdevās pārbaudīt."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Dzēst atceltos testa pasūtījumus"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Dzēš testa pasūtījumu, kad tas ir atcelts. Ja izslēgts, atceltie testa pasūtījumi paliek pasūtījumu sarakstā."
 "Abandon Test Orders After (Minutes)","Pamest testa pasūtījumus pēc (minūtēm)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Testa pasūtījums, ko izpildītājs pats nepabeidza, tiek atcelts tik minūtes pēc tā veikšanas."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Testa pasūtījums, ko izpildītājs pats nepabeidza, tiek pabeigts tik minūtes pēc tā groza atpazīšanas: tas tiek atcelts vai, ja ir apmaksāts, atmaksāts bezsaistē."

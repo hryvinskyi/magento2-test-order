@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Za košaricu %1 nije prepoznata nijedna testna narudžba."
-"A test order can only be placed from a guest cart, so the order was not placed.","Testna narudžba može se napraviti samo iz košarice gosta, pa narudžba nije napravljena."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Testna narudžba može se napraviti samo iz košarice gosta ili košarice testnog kupca, pa narudžba nije napravljena."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Testna narudžba može se napraviti samo iz otvorene košarice bez obične narudžbe, pa narudžba nije napravljena."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Dokaz testne narudžbe poslan uz ovu narudžbu nije bilo moguće provjeriti, pa narudžba nije napravljena."
 "The test-order proof sent with this request could not be verified.","Dokaz testne narudžbe poslan uz ovaj zahtjev nije bilo moguće provjeriti."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Brisanje otkazanih testnih narudžbi"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Briše testnu narudžbu nakon što je otkazana. Kada je isključeno, otkazane testne narudžbe ostaju u popisu narudžbi."
 "Abandon Test Orders After (Minutes)","Napuštanje testnih narudžbi nakon (minuta)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Testna narudžba koju pokretač nije sam završio otkazuje se toliko minuta nakon što je napravljena."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Testna narudžba koju pokretač nije sam završio završava se toliko minuta nakon prepoznavanja njezine košarice: otkazuje se ili, ako je plaćena, refundira izvanmrežno."

@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","A(z) %1 kosárhoz nem ismertünk fel tesztrendelést."
-"A test order can only be placed from a guest cart, so the order was not placed.","Tesztrendelést csak vendégkosárból lehet leadni, ezért a rendelés nem lett leadva."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Tesztrendelést csak vendégkosárból vagy tesztügyfél kosarából lehet leadni, ezért a rendelés nem lett leadva."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Tesztrendelést csak nyitott kosárból lehet leadni, amelyhez nem tartozik normál rendelés, ezért a rendelés nem lett leadva."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","A rendeléssel küldött tesztrendelés-igazolást nem sikerült ellenőrizni, ezért a rendelés nem lett leadva."
 "The test-order proof sent with this request could not be verified.","A kéréssel küldött tesztrendelés-igazolást nem sikerült ellenőrizni."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Lemondott tesztrendelések törlése"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","A tesztrendelés törlése, miután lemondták. Kikapcsolva a lemondott tesztrendelések a rendeléslistában maradnak."
 "Abandon Test Orders After (Minutes)","Tesztrendelések lezárása (perc) után"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Az a tesztrendelés, amelyet a futtató maga nem zárt le, ennyi perccel a leadása után lemondásra kerül."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Az a tesztrendelés, amelyet a futtató maga nem zárt le, ennyi perccel a kosara felismerése után lezárásra kerül: lemondásra kerül, vagy ha kifizették, offline visszatérítésre."

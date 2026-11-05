@@ -33,7 +33,7 @@ interface UndoStepInterface
     /**
      * Take back what placing the test order did in this step's integration.
      *
-     * @param OrderInterface $order The test order, cancelled or past cancelling
+     * @param OrderInterface $order The test order: cancelled, closed, or past cancelling and kept
      * @return void
      */
     public function undo(OrderInterface $order): void;

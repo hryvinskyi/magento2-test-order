@@ -17,6 +17,8 @@ use Magento\Framework\Exception\AuthorizationException;
  *
  * The one place a sent proof is parsed and checked against the shop's secret and the current time, for every surface
  * that honours a proof.
+ *
+ * @api
  */
 interface RequestProofInterface
 {

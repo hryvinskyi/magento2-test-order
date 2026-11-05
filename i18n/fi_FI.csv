@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Ostoskorille %1 ei tunnistettu testitilausta."
-"A test order can only be placed from a guest cart, so the order was not placed.","Testitilauksen voi tehdä vain vierasostoskorista, joten tilausta ei tehty."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Testitilauksen voi tehdä vain vierasostoskorista tai testiasiakkaan ostoskorista, joten tilausta ei tehty."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Testitilauksen voi tehdä vain avoimesta ostoskorista, jolla ei ole tavallista tilausta, joten tilausta ei tehty."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Tämän tilauksen mukana lähetettyä testitilauksen todistetta ei voitu vahvistaa, joten tilausta ei tehty."
 "The test-order proof sent with this request could not be verified.","Tämän pyynnön mukana lähetettyä testitilauksen todistetta ei voitu vahvistaa."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Poista peruutetut testitilaukset"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Poista testitilaus, kun se on peruutettu. Kun pois päältä, peruutetut testitilaukset jäävät tilausluetteloon."
 "Abandon Test Orders After (Minutes)","Hylkää testitilaukset (minuutin) kuluttua"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Testitilaus, jota testiajo ei itse päättänyt, peruutetaan näin monta minuuttia sen tekemisen jälkeen."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Testitilaus, jota testiajo ei itse päättänyt, päätetään näin monta minuuttia sen ostoskorin tunnistamisen jälkeen: se peruutetaan tai, jos se on maksettu, hyvitetään offline-tilassa."

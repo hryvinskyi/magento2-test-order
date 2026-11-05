@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Aucune commande de test n'a été reconnue pour le panier %1."
-"A test order can only be placed from a guest cart, so the order was not placed.","Une commande de test ne peut être passée qu'à partir d'un panier invité ; la commande n'a donc pas été passée."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Une commande de test ne peut être passée qu'à partir d'un panier invité ou du panier d'un client de test ; la commande n'a donc pas été passée."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Une commande de test ne peut être passée qu'à partir d'un panier ouvert sans commande ordinaire ; la commande n'a donc pas été passée."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","La preuve de commande de test envoyée avec cette commande n'a pas pu être vérifiée ; la commande n'a donc pas été passée."
 "The test-order proof sent with this request could not be verified.","La preuve de commande de test envoyée avec cette requête n'a pas pu être vérifiée."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Supprimer les commandes de test annulées"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Supprimer une commande de test une fois annulée. Si désactivé, les commandes de test annulées restent dans la grille des commandes."
 "Abandon Test Orders After (Minutes)","Abandonner les commandes de test après (minutes)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Une commande de test que l'exécuteur n'a pas terminée lui-même est annulée ce nombre de minutes après avoir été passée."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Une commande de test que l'exécuteur n'a pas terminée lui-même est terminée ce nombre de minutes après la reconnaissance de son panier : elle est annulée ou, si elle a été payée, remboursée hors ligne."

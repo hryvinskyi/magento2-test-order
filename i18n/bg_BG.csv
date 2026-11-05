@@ -1,5 +1,5 @@
 "No test order was recognised for cart %1.","Не е разпозната тестова поръчка за количка %1."
-"A test order can only be placed from a guest cart, so the order was not placed.","Тестова поръчка може да бъде направена само от количка на гост, затова поръчката не беше направена."
+"A test order can only be placed from a guest cart or a test customer's cart, so the order was not placed.","Тестова поръчка може да бъде направена само от количка на гост или количка на тестов клиент, затова поръчката не беше направена."
 "A test order can only be placed from an open cart that has no ordinary order, so the order was not placed.","Тестова поръчка може да бъде направена само от отворена количка без обикновена поръчка, затова поръчката не беше направена."
 "The test-order proof sent with this order could not be verified, so the order was not placed.","Доказателството за тестова поръчка, изпратено с тази поръчка, не можа да бъде проверено, затова поръчката не беше направена."
 "The test-order proof sent with this request could not be verified.","Доказателството за тестова поръчка, изпратено с тази заявка, не можа да бъде проверено."
@@ -10,4 +10,4 @@
 "Delete Cancelled Test Orders","Изтриване на отменени тестови поръчки"
 "Delete a test order once it has been cancelled. When off, cancelled test orders stay in the order grid.","Изтрива тестова поръчка, след като е отменена. Когато е изключено, отменените тестови поръчки остават в списъка с поръчки."
 "Abandon Test Orders After (Minutes)","Изоставяне на тестови поръчки след (минути)"
-"A test order the runner did not end itself is cancelled this many minutes after it was placed.","Тестова поръчка, която изпълнителят не е приключил сам, се отменя толкова минути след като е направена."
+"A test order the runner did not end itself is ended this many minutes after its cart was recognised: cancelled, or refunded offline when it was paid.","Тестова поръчка, която изпълнителят не е приключил сам, се приключва толкова минути след разпознаването на количката ѝ: отменя се или се възстановява офлайн, ако е платена."

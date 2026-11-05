@@ -17,6 +17,9 @@ namespace Hryvinskyi\TestOrder\Api;
  * staging server — does not carry it: there, a guard that sees live keys refuses test orders, because ending a local
  * test order would act on the live payment that carries the same order number.
  *
+ * The module asks it once itself: a paid test order on such a shop is not refunded offline, as that would hide real
+ * money. Everything else is a guard's to ask.
+ *
  * @api
  */
 interface LivePaymentsDeclarationInterface
